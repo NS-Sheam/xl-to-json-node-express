@@ -1,5 +1,6 @@
 import XLSX from "xlsx";
 import removeFromTempFolder from "../../utils/removeFromTempFolder.js";
+import { XlToJsonData } from "./xlToJson.model.js";
 
 const xlToJson = async (file) => {
   const workbook = XLSX.readFile(file.path);
@@ -10,11 +11,15 @@ const xlToJson = async (file) => {
   }
 
   const worksheet = workbook.Sheets[sheetName];
-
   const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "", range: 1 });
+
+  // Save JSON data to the database
+  const savedData = await XlToJsonData.insertMany(jsonData);
+
+  // Remove the file from the temp folder
   removeFromTempFolder(file.filename);
 
-  return jsonData;
+  return savedData;
 };
 
 export const XlToJsonService = {
